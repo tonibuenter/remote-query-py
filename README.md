@@ -5,7 +5,8 @@
 
 ## Documentation
 
-https://github.com/tonibuenter/remote-query/blob/master/docs/remote-query.png
+General Documentation for RemoteQuery is part of the RemoteQuery Java version. See:
+[https://github.com/tonibuenter/remote-query]
 
 Main repository for RemoteQuery which contains the RemoteQuery Java version and RemoteQuery documentation you find at: [https://github.com/tonibuenter/remote-query].
 
