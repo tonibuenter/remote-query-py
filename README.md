@@ -5,7 +5,7 @@ RemoteQuery implementation with Python
 
 ## Documentation
 
-Main repository for RemoteQuery [https://github.com/tonibuenter/remote-query-py]
+Main repository for RemoteQuery [https://github.com/tonibuenter/remote-query]
 
 ## Installs
 
