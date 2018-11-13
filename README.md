@@ -1,3 +1,5 @@
+![Remote Query PY](docs/g2303.png)
+
 # remote-query-py
 RemoteQuery implementation with Python
 
@@ -5,11 +7,13 @@ RemoteQuery implementation with Python
 
 ## Documentation
 
-Main repository for RemoteQuery [https://github.com/tonibuenter/remote-query]
+https://github.com/tonibuenter/remote-query/blob/master/docs/remote-query.png
+
+Main repository for RemoteQuery which contains the RemoteQuery Java version and RemoteQuery documentation you find at: [https://github.com/tonibuenter/remote-query].
 
 ## Installs
 
-We did all installation with conda [https://conda.io/docs/index.html]
+We did all installation with conda [https://conda.io/docs/index.html].
 
 ### Mysql
 
