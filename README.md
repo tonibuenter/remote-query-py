@@ -1,8 +1,6 @@
 ![Remote Query PY](docs/g2303.png)
 
-# remote-query-py
-RemoteQuery implementation with Python
-
+# RemoteQuery (RQ) for Python
 
 
 ## Documentation
@@ -17,6 +15,6 @@ We did all installation with conda [https://conda.io/docs/index.html].
 
 ### Mysql
 
-``conda install -c anaconda mysql-connector-python```
+```conda install -c anaconda mysql-connector-python```
 
 
