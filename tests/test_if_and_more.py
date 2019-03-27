@@ -1,6 +1,4 @@
-import unittest
-import logging
-import string
+
 from unittest import TestCase
 import remote_query as rQ
 from remote_query import StatementNode
@@ -9,6 +7,9 @@ import test_central
         
         
 class Test_Commands_if_and_more(TestCase):
+        
+    def setUp(self):
+        test_central.TestCentral.init()
 
     def test_command_if(self):
         
@@ -41,6 +42,26 @@ class Test_Commands_if_and_more(TestCase):
         r = request.run()
         self.assertTrue(len(r) > 0)
         self.assertEqual("false", r.toList()[0]["value"]);
+
+
+    def test_command_if_empty(self):
+        
+        #
+        # COMMAND NODE
+        #
+ 
+        se = rQ.ServiceRepositoryHolder.get("Test.Command.if-empty")
+        self.assertIsNotNone(se)
+        
+ 
+        #
+        # REQUEST RUN
+        #
+ 
+        request = rQ.Request().setServiceId("Test.Command.if-empty").put("name", "does not exist") 
+        request.run()
+        self.assertEqual("true", request.get('emptyVisited'));
+        self.assertEqual("false", request.get('else'));
         
     def test_command_if_else_only(self):
         

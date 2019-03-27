@@ -17,6 +17,12 @@ class TestCentral:
         if TestCentral.dataSource :
             TestCentral.logger.info("TestCentral already initialized, will do nothing...")
             return
+        
+        rQ.sqlLogger.setLevel(logging.DEBUG)
+        rQ.logger.setLevel(logging.DEBUG)
+        rQ.sqlLogger.debug("TEST DEBUG")
+        rQ.logger.debug("TEST DEBUG")
+
 
         #
         # 1. Database : Create a temporary directory for a Appache Derby DB

@@ -1,1 +1,16 @@
 conda install -c anaconda mysql-connector-python
+
+
+preview-generator
+
+https://pypi.org/project/preview-generator/
+
+
+pip install preview-generator
+
+
+Note about requirements: some packages are needed for installing python. If the pip install preview-generator command fails, try to install zlib and libjpeg dev packages. On debian-based OSes this can be done through the following command:
+
+apt-get install zlib1g-dev libjpeg-dev
+
+

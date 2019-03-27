@@ -1,11 +1,14 @@
-import unittest
-import string
+# import unittest
+# import string
 from unittest import TestCase
 import remote_query as rQ
 import test_central
         
         
 class Test_Resolve_Value(TestCase):
+    
+    def setUp(self):
+        test_central.TestCentral.init()
 
     def test1(self):
         request = rQ.Request(parameters={'firstName':'Johansson','zero':''})

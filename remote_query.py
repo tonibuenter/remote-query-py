@@ -57,7 +57,6 @@ class DataSource:
     def returnConnection(self, con):
         con.close()
 
-
 # 
 # Init logging
 # 
@@ -106,6 +105,7 @@ class Commands:
     
     StartBlock = set()
     StartBlock.add('if')
+    StartBlock.add('if-empty')
     StartBlock.add('switch')
     StartBlock.add('while')
     StartBlock.add('foreach')
@@ -187,8 +187,10 @@ def resolveIncludes(statements, recursionCounter={}):
             serviceId = ''
             try:
                 _0, serviceId, _2 = parse_statement(stmt)
-                se = ServiceRepositoryHolder.get(serviceId)                
-                counter = recursionCounter.get(se.serviceId, 0) #recursionCounter[se.serviceId] if se.serviceId in recursionCounter else 0
+                se = ServiceRepositoryHolder.get(serviceId)     
+                if se is None: 
+                    raise Exception('Did not find service for include command: ' + serviceId)
+                counter = recursionCounter.get(se.serviceId, 0)  # recursionCounter[se.serviceId] if se.serviceId in recursionCounter else 0
                 counter += 1
                 if counter < MAX_INCLUDES:
                     recursionCounter[se.serviceId] = counter
@@ -490,6 +492,7 @@ class ProcessLog:
     def __init__(self):
         self.logLines = []
         self.recursion = 0
+        self.message = []
         
     def incrRecursion(self, _name='no_name'):
         self.recursion += 1
@@ -516,6 +519,9 @@ class ProcessLog:
     def error(self, *args):
         self.logLines.append({ 'message':M(args), 'state':ProcessLog.Error, 'code':ProcessLog.ERROR_CODE, 'time':currentTimeMillis() })
     
+    def message(self, level, message):
+        self.messages.append({ 'level':level, 'message': message})
+
        
 class LogLine:
 
@@ -713,12 +719,12 @@ def sql_command(request, currentResult=None, statementNode=None, serviceEntry=Se
 Commands.Registry['sql'] = sql_command
 
 
-def resolve_value(term, request):
+def resolve_value(term, request=None):
     # reference to parameter
     term = '' if term is None else term.strip()
     if len(term) < 2:
         return term
-    if term[0] == ':' :
+    if request is not None and term[0] == ':' :
         if term[1:] in request.parameters:
             return request.parameters[term[1:]] or ''
         else:
@@ -808,11 +814,15 @@ def parameters_command(request, currentResult=None, statementNode=None, serviceE
     r = processCommandBlock(iCb, request, currentResult, serviceEntry)
 
     if r is not None:            
+        # empty all paramters if overwrite == true
+        if overwrite:
+            for head in r.header:
+                request.put(head, '')
+        
         parameters = r.row(0)
         for key in r.header:
             if not request.get(key) or overwrite:
                 request.put(key, parameters.get(key))
-                
                 
     return currentResult
 
@@ -834,7 +844,16 @@ Commands.Registry['parameters-if-empty'] = parameters_if_empty_command
 # service_id_command
 #
 def service_id_command(request, statementNode=None, currentResult=None, **kv):
-    iRequest = copy.deepcopy(request)
+    
+    iRequest = Request()
+    
+    iRequest.parameters = request.parameters
+    iRequest.userId = request.userId
+    iRequest.roles = request.roles 
+    iRequest.files = request.files 
+
+    # iRequest = copy.deepcopy(request)
+    
     iRequest.serviceId = statementNode.parameter
     r = run_request(iRequest)
     return results_coalesce(r, currentResult)
@@ -901,8 +920,20 @@ Commands.Registry['include'] = noop_command
 # if_command
 #
 def  if_command(request, currentResult=None, statementNode=None, serviceEntry=None):
+    return _if(False, request, currentResult, statementNode, serviceEntry)
+
+
+#
+# if_empty_command
+#
+def  if_empty_command(request, currentResult=None, statementNode=None, serviceEntry=None):
+    return _if(True, request, currentResult, statementNode, serviceEntry)
+
+
+def  _if(if_empty, request, currentResult=None, statementNode=None, serviceEntry=None):
 
     isThen = bool(resolve_value(statementNode.parameter, request))
+    isThen = not isThen if if_empty else isThen
 
     for cbChild in statementNode.children:
         if 'else' == cbChild.cmd:
@@ -917,6 +948,7 @@ def  if_command(request, currentResult=None, statementNode=None, serviceEntry=No
 
 
 Commands.Registry['if'] = if_command
+Commands.Registry['if-empty'] = if_empty_command
 
 
 #
@@ -967,12 +999,14 @@ def foreach_command (request, currentResult=None, statementNode=None, serviceEnt
     if indexResult is not None and len(indexResult.table) > 0:
         list_ = indexResult.toList()
         iRequest = copy.deepcopy(request)
-    
+        index = 1
         for map_ in list_:
             iRequest.parameters.update(map_)
+            iRequest.put('$INDEX', str(index))
             for child in statementNode.children:
                 r = processCommandBlock(child, iRequest, currentResult, serviceEntry)
                 currentResult = results_coalesce(r, currentResult)
+            index += 1
     return currentResult;
 
 
@@ -1002,7 +1036,9 @@ Commands.Registry['while'] = while_command
 # add_role_command
 #
 def add_role_command(request, currentResult=None, statementNode=None, serviceEntry=None):
-    if statementNode.parameter: request.roles.add(statementNode.parameter)
+    if statementNode.parameter: 
+        role = resolve_value(statementNode.parameter)
+        request.roles.add(role)
     return currentResult
 
 
@@ -1013,7 +1049,9 @@ Commands.Registry['add-role'] = add_role_command
 # remove_role_command
 #
 def remove_role_command(request, currentResult=None, statementNode=None, serviceEntry=None):
-    if statementNode.parameter: request.roles.discard(statementNode.parameter)
+    if statementNode.parameter: 
+        role = resolve_value(statementNode.parameter)
+        request.roles.discard(role)
     return currentResult
 
 
@@ -1025,12 +1063,52 @@ Commands.Registry['remove-role'] = remove_role_command
 #
 def comment_command(request, currentResult=None, statementNode=None, serviceEntry=None):
     if statementNode.parameter:
-        logger.info(M('comment:', statementNode.parameter))
-        ProcessLog.Current().infoUser(statementNode.parameter)
+        _comment = resolve_value(statementNode.parameter, request)
+        logger.info(M('comment:', _comment))
+        ProcessLog.Current().infoUser(_comment)
     return currentResult
 
 
 Commands.Registry['comment'] = comment_command
+
+
+#
+# info_command
+#
+def info_command(request, currentResult=None, statementNode=None, serviceEntry=None):
+    if statementNode.parameter:
+        _message = resolve_value(statementNode.parameter, request)
+        ProcessLog.Current().message('info', _message)
+    return currentResult
+
+
+Commands.Registry['info'] = info_command
+
+
+#
+# warning_command
+#
+def warning_command(request, currentResult=None, statementNode=None, serviceEntry=None):
+    if statementNode.parameter:
+        _message = resolve_value(statementNode.parameter, request)
+        ProcessLog.Current().message('warning', _message)
+    return currentResult
+
+
+Commands.Registry['warning'] = warning_command
+
+
+#
+# error_command
+#
+def error_command(request, currentResult=None, statementNode=None, serviceEntry=None):
+    if statementNode.parameter:
+        _message = resolve_value(statementNode.parameter, request)
+        ProcessLog.Current().message('error', _message)
+    return currentResult
+
+
+Commands.Registry['error'] = error_command
 
 
 def closeQuietly(o):
@@ -1242,7 +1320,7 @@ class QueryAndParams():
         param = self.current_param
         if (param[-2:] == '[]'):
             param_base = param[:-2]
-            a_value = self.req_params.get(param_base, None) # self.req_params[param_base] if param_base in self.req_params else None
+            a_value = self.req_params.get(param_base, None)  # self.req_params[param_base] if param_base in self.req_params else None
             if a_value is None:
                 self.param_list.append(param)
                 self.qm_query += '%s'

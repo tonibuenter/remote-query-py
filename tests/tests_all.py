@@ -215,13 +215,13 @@ class Test_Misc(TestCase):
         self.assertEqual(3, len(_list))
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
+#     
+#     rQ.sqlLogger.setLevel(logging.DEBUG)
+#     rQ.logger.setLevel(logging.DEBUG)
+#     rQ.sqlLogger.debug("TEST DEBUG")
+#     rQ.logger.debug("TEST DEBUG")
     
-    rQ.sqlLogger.setLevel(logging.DEBUG)
-    rQ.logger.setLevel(logging.DEBUG)
-    rQ.sqlLogger.debug("TEST DEBUG")
-    rQ.logger.debug("TEST DEBUG")
-    
-    TestCentral.init()
-    
-    unittest.main()
+#     TestCentral.init()
+#     
+#     unittest.main()

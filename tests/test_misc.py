@@ -1,13 +1,15 @@
 from unittest import TestCase
 import remote_query as rQ
 
-from  test_central import TestCentral
+import test_central
         
         
 class Test_Misc(TestCase):
+        
+    def setUp(self):
+        test_central.TestCentral.init()
 
     def test_set(self):
-        TestCentral.init()
         serviceId = "Test.Command.set"
         se = rQ.ServiceRepositoryHolder.get(serviceId)
         self.assertIsNotNone(se)
@@ -16,7 +18,6 @@ class Test_Misc(TestCase):
         self.assertTrue("hello", request.get("name"))
 
     def test_set2(self):
-        TestCentral.init()        
         serviceId = "Test.Command.copy"
         se = rQ.ServiceRepositoryHolder.get(serviceId)
         self.assertIsNotNone(se)
@@ -27,7 +28,6 @@ class Test_Misc(TestCase):
         self.assertEqual("hello2", request.get("name2"))
         
     def test_command_backslash(self):
-        TestCentral.init()        
         serviceId = "Test.Command.backslash"
         se = rQ.ServiceRepositoryHolder.get(serviceId)
         self.assertIsNotNone(se)
@@ -38,7 +38,6 @@ class Test_Misc(TestCase):
         self.assertEqual("ok", request.get("semicolon"))
         
     def test_command_example(self):
-        TestCentral.init()                
         serviceId = "Test.Command.example"
         se = rQ.ServiceRepositoryHolder.get(serviceId)
         self.assertIsNotNone(se)
@@ -50,7 +49,6 @@ class Test_Misc(TestCase):
         
     def test_command_serviceid(self):
         
-        TestCentral.init()        
         serviceId = "Test.Command.serviceid"
         se = rQ.ServiceRepositoryHolder.get(serviceId)
         self.assertIsNotNone(se)
@@ -61,7 +59,6 @@ class Test_Misc(TestCase):
         self.assertEqual("world", r.table[0][0])
         
     def test_insert_html_text(self):
-        TestCentral.init()        
         texttext = "<html>hallo</html>"
         serviceId = "HtmlText.save"
         se = rQ.ServiceRepositoryHolder.get(serviceId)

@@ -1,6 +1,6 @@
-import unittest
-import logging
-import string
+# import unittest
+# import logging
+# import string
 from unittest import TestCase
 import remote_query as rQ
 from remote_query import StatementNode
@@ -9,6 +9,9 @@ import test_central
         
         
 class Test_While(TestCase):
+
+    def setUp(self):
+        test_central.TestCentral.init()
 
     def test_command_while(self):
         

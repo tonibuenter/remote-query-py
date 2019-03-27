@@ -6,6 +6,9 @@ from test_central import TestCentral
         
         
 class Test_Bootstrap(TestCase):
+        
+    def setUp(self):
+        TestCentral.init()
 
     def test_service_repository_is_ok(self):
         TestCentral.init()

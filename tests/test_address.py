@@ -4,6 +4,9 @@ from test_central import TestCentral
         
         
 class Test_Address(TestCase):
+        
+    def setUp(self):
+        TestCentral.init()
 
     def test_address_filter(self):
         TestCentral.init()
